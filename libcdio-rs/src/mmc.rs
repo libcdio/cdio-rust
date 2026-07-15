@@ -26,10 +26,12 @@ use std::{
 pub use get_config::*;
 pub use get_event_status::*;
 pub use read_subchannel::*;
+pub use start_stop_unit::*;
 
 mod get_config;
 mod get_event_status;
 mod read_subchannel;
+mod start_stop_unit;
 
 use docsplay::Display;
 use libcdio_sys::{
@@ -359,6 +361,7 @@ pub enum OsError {
 #[derive(Clone, Copy, Debug)]
 enum MmcCommand {
     GetConfiguration = 0x46,
+    StartStopUnit = 0x1B,
 }
 
 #[cfg(test)]
