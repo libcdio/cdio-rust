@@ -25,10 +25,12 @@ use std::{
 
 pub use get_config::*;
 pub use get_event_status::*;
+pub use prevent_allow_medium_removal::*;
 pub use read_subchannel::*;
 
 mod get_config;
 mod get_event_status;
+mod prevent_allow_medium_removal;
 mod read_subchannel;
 
 use docsplay::Display;
@@ -359,6 +361,7 @@ pub enum OsError {
 #[derive(Clone, Copy, Debug)]
 enum MmcCommand {
     GetConfiguration = 0x46,
+    PreventAllowMediumRemoval = 0x1E,
 }
 
 #[cfg(test)]
