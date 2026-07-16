@@ -71,7 +71,7 @@ impl Mmc {
     /// # Errors
     /// If an MMC capable device could not be found.
     pub fn new() -> Result<Mmc, MmcNotFoundError> {
-        Cdio::new(None, Cdio::DEVICE_DRIVER)
+        Cdio::with_device(None)
             .map(|cdio| Self { cdio })
             .filter(|mmc| mmc.level().is_ok())
             .ok_or(MmcNotFoundError)
@@ -89,7 +89,7 @@ impl Mmc {
                 source: WithDeviceErrorKind::DeviceHasNullChar(err),
             }
         })?;
-        let Some(cdio) = Cdio::new(Some(&device), Cdio::DEVICE_DRIVER) else {
+        let Some(cdio) = Cdio::with_device(Some(&device)) else {
             return Err(WithDeviceError {
                 device: os_string_from_bytes_safe(device.into_bytes()).into(),
                 source: WithDeviceErrorKind::CouldNotOpenDevice,
