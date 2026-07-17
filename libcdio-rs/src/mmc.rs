@@ -25,10 +25,12 @@ use std::{
 
 pub use get_config::*;
 pub use get_event_status::*;
+pub use inquiry::*;
 pub use read_subchannel::*;
 
 mod get_config;
 mod get_event_status;
+mod inquiry;
 mod read_subchannel;
 
 use docsplay::Display;
@@ -354,11 +356,12 @@ pub enum OsError {
 }
 
 /// Implemented MMC commands and their operation codes.
-#[allow(unused)]
 #[repr(u8)]
 #[derive(Clone, Copy, Debug)]
 enum MmcCommand {
+    #[allow(unused)]
     GetConfiguration = 0x46,
+    Inquiry = 0x12,
 }
 
 #[cfg(test)]
