@@ -20,6 +20,7 @@
 use std::{
     ffi::{CString, NulError, OsString},
     path::PathBuf,
+    ptr,
 };
 
 pub use get_config::*;
@@ -30,7 +31,7 @@ mod get_config;
 mod get_event_status;
 mod read_subchannel;
 
-use displaydoc::Display;
+use docsplay::Display;
 use libcdio_sys::{
     cdio_mmc_direction_t, cdio_mmc_level_t_CDIO_MMC_LEVEL_1, cdio_mmc_level_t_CDIO_MMC_LEVEL_2,
     cdio_mmc_level_t_CDIO_MMC_LEVEL_3, cdio_mmc_level_t_CDIO_MMC_LEVEL_NONE,
@@ -120,12 +121,37 @@ impl Mmc {
             .expect("mmc_get_drive_mmc_cap should return a valid mmc_level_t"))
     }
 
+    /// Returns the current sense data from the device.
+    pub fn sense_data(&self) -> Option<MmcSenseData> {
+        let mut sense_ptr = ptr::null_mut();
+        let ret = unsafe { libcdio_sys::mmc_last_cmd_sense(self.cdio.as_ptr(), &mut sense_ptr) };
+        if ret <= 0 || sense_ptr.is_null() {
+            return None;
+        }
+        // SAFETY: Null check done.
+        let sense = unsafe { *sense_ptr };
+        let sense = MmcSenseData {
+            sense_key: SenseKey::from(sense.sense_key()),
+            asc: sense.asc,
+            ascq: sense.ascq,
+            ili: sense.ili() != 0,
+            csi: sense.command_info,
+            fruc: sense.fruc,
+            sks: sense.sks,
+            asb: sense.asb,
+        };
+        // SAFETY: The contents have been copied.
+        unsafe { libcdio_sys::cdio_free(sense_ptr.cast()) };
+
+        Some(sense)
+    }
+
     fn run_command(
         &self,
         direction: Option<MmcDirection>,
         buf: &mut [u8],
         cdb: Cdb,
-    ) -> Result<(), OsError> {
+    ) -> Result<(), MmcError> {
         let direction = direction
             .map(cdio_mmc_direction_t::from)
             .unwrap_or(libcdio_sys::mmc_direction_s_SCSI_MMC_DATA_NONE);
@@ -140,11 +166,15 @@ impl Mmc {
                 buf.as_mut_ptr().cast(),
             )
         };
-        if ret < 0 {
-            return Err(OsError::from(ret));
-        }
-
-        return Ok(());
+        return if ret >= 0 {
+            Ok(())
+        } else if ret == -1
+            && let Some(sense_data) = self.sense_data()
+        {
+            Err(MmcError::CheckCondition(sense_data))
+        } else {
+            Err(MmcError::Os(OsError::from(ret)))
+        };
 
         const DEFAULT_TIMEOUT_MS: u32 = 6000;
     }
@@ -178,6 +208,114 @@ pub struct MmcNotFoundError;
 #[derive(Debug, Display, Error)]
 pub struct MmcOperationError;
 
+/// Error and status information returned by an MMC device
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct MmcSenseData {
+    /// Generic information describing an exception.
+    pub sense_key: SenseKey,
+
+    /// Additional Sense Code indicates further information related
+    /// to the exception reported by `sense_key`.
+    pub asc: u8,
+
+    /// Additional Sense Code Qualifier indicates detailed information related
+    /// to the `additional_sense_code`.
+    pub ascq: u8,
+
+    /// Incorrect Length Indicator.
+    pub ili: bool,
+
+    /// Command Specific Information indicates info that depends on the command
+    /// on which the exception occured.
+    pub csi: [u8; 4],
+
+    /// Field Replaceable Unit Code identifies a component that has failed.
+    pub fruc: u8,
+
+    /// Sense Key Specific indicates additional information about the exception.
+    pub sks: [u8; 3],
+
+    /// Additional Sense Bytes may contain vendor specific data that further
+    /// define the exception.
+    pub asb: [u8; 46],
+}
+
+impl Default for MmcSenseData {
+    fn default() -> Self {
+        Self {
+            sense_key: Default::default(),
+            asc: Default::default(),
+            ascq: Default::default(),
+            ili: Default::default(),
+            csi: Default::default(),
+            fruc: Default::default(),
+            sks: Default::default(),
+            asb: [0; _],
+        }
+    }
+}
+
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, FromPrimitive)]
+pub enum SenseKey {
+    /// No sense condition.
+    NoSense = 0x0,
+
+    /// The command completed successfully, but some recovery action was taken.
+    RecoveredError = 0x1,
+
+    /// The logical unit is not ready to receive the command.
+    NotReady = 0x2,
+
+    /// The medium (disk/tape) is defective or the data is unreadable.
+    MediumError = 0x3,
+
+    /// A non-recoverable hardware failure occurred.
+    HardwareError = 0x4,
+
+    /// An invalid field in the CDB or an unsupported command was sent.
+    IllegalRequest = 0x5,
+
+    /// The device has a condition that needs the host's attention
+    /// (e.g., medium changed).
+    UnitAttention = 0x6,
+
+    /// A command that reads or writes the medium was attempted on a protected
+    /// block.
+    DataProtect = 0x7,
+
+    /// A write-once or sequential-access device encountered blank medium or
+    /// format-defined end-of-data indication while reading or writing.
+    BlankCheck = 0x8,
+
+    /// Vendor specific conditions.
+    VendorSpecific = 0x9,
+
+    /// An `EXTENDED COPY` command was aborted due to an error condition on
+    /// either the source or destination device.
+    CopyAborted = 0xA,
+
+    /// The device server aborted the command.
+    AbortedCommand = 0xB,
+
+    /// A buffered SCSI device has reached end-of-partition.
+    VolumeOverflow = 0xD,
+
+    /// The source data did not match the data read from the medium.
+    Miscompare = 0xE,
+
+    /// Unknown sense key.
+    #[num_enum(catch_all)]
+    Unknown(u8),
+}
+
+#[allow(clippy::derivable_impls)] // `num_enum` doesn't work with `#[derive(Default)]`
+impl Default for SenseKey {
+    fn default() -> Self {
+        Self::NoSense
+    }
+}
+
 /// Direction of MMC data transfer
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, IntoPrimitive)]
@@ -186,6 +324,17 @@ enum MmcDirection {
     Read = libcdio_sys::mmc_direction_s_SCSI_MMC_DATA_READ,
     #[allow(unused)]
     Write = libcdio_sys::mmc_direction_s_SCSI_MMC_DATA_WRITE,
+}
+
+/// error performing MMC command
+#[non_exhaustive]
+#[derive(Debug, Display, Error)]
+pub enum MmcError {
+    /// terminated with `CHECK CONDITION`, sense_key: {0.sense_key:?}, asc: 0x{0.asc:x}, ascq: 0x{0.ascq:x}
+    CheckCondition(MmcSenseData),
+
+    /// operating system error
+    Os(OsError),
 }
 
 /// operating system error
@@ -204,8 +353,18 @@ pub enum OsError {
     BadParameter = libcdio_sys::driver_return_code_t_DRIVER_OP_BAD_PARAMETER,
 }
 
+/// Implemented MMC commands and their operation codes.
+#[allow(unused)]
+#[repr(u8)]
+#[derive(Clone, Copy, Debug)]
+enum MmcCommand {
+    GetConfiguration = 0x46,
+}
+
 #[cfg(test)]
 mod tests {
+    use tracing::info;
+
     use super::*;
 
     #[test]
@@ -217,5 +376,20 @@ mod tests {
     #[ignore = "requires a disc drive with mmc"]
     fn level() {
         Mmc::new().unwrap().level().unwrap();
+    }
+
+    #[test_log::test(test)]
+    #[ignore = "requires a disc drive with mmc"]
+    fn sense_data() {
+        let mmc = Mmc::new().unwrap();
+        // perform an invalid `READ TOC`
+        let mut cdb = Cdb::default();
+        cdb[0] = 0x43;
+        cdb[2] = 0xFF; // invalid value
+        mmc.run_command(Some(crate::mmc::MmcDirection::Write), &mut [], cdb)
+            .unwrap_err();
+
+        let sense_data = mmc.sense_data().unwrap();
+        info!(?sense_data);
     }
 }
