@@ -49,4 +49,8 @@ pub struct MmcActions {
     /// Close the tray, if present
     #[arg(short, long)]
     pub close_tray: bool,
+
+    /// Put the device into standby
+    #[arg(short, long)]
+    pub standby: bool,
 }
