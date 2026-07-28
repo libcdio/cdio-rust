@@ -31,7 +31,7 @@ mod get_config;
 mod get_event_status;
 mod read_subchannel;
 
-use displaydoc::Display;
+use docsplay::Display;
 use libcdio_sys::{
     cdio_mmc_direction_t, cdio_mmc_level_t_CDIO_MMC_LEVEL_1, cdio_mmc_level_t_CDIO_MMC_LEVEL_2,
     cdio_mmc_level_t_CDIO_MMC_LEVEL_3, cdio_mmc_level_t_CDIO_MMC_LEVEL_NONE,
@@ -151,7 +151,7 @@ impl Mmc {
         direction: Option<MmcDirection>,
         buf: &mut [u8],
         cdb: Cdb,
-    ) -> Result<(), OsError> {
+    ) -> Result<(), MmcError> {
         let direction = direction
             .map(cdio_mmc_direction_t::from)
             .unwrap_or(libcdio_sys::mmc_direction_s_SCSI_MMC_DATA_NONE);
@@ -166,11 +166,15 @@ impl Mmc {
                 buf.as_mut_ptr().cast(),
             )
         };
-        if ret < 0 {
-            return Err(OsError::from(ret));
-        }
-
-        return Ok(());
+        return if ret >= 0 {
+            Ok(())
+        } else if ret == -1
+            && let Some(sense_data) = self.sense_data()
+        {
+            Err(MmcError::CheckCondition(sense_data))
+        } else {
+            Err(MmcError::Os(OsError::from(ret)))
+        };
 
         const DEFAULT_TIMEOUT_MS: u32 = 6000;
     }
@@ -320,6 +324,17 @@ enum MmcDirection {
     Read = libcdio_sys::mmc_direction_s_SCSI_MMC_DATA_READ,
     #[allow(unused)]
     Write = libcdio_sys::mmc_direction_s_SCSI_MMC_DATA_WRITE,
+}
+
+/// error performing MMC command
+#[non_exhaustive]
+#[derive(Debug, Display, Error)]
+pub enum MmcError {
+    /// terminated with `CHECK CONDITION`, sense_key: {0.sense_key:?}, asc: 0x{0.asc:x}, ascq: 0x{0.ascq:x}
+    CheckCondition(MmcSenseData),
+
+    /// operating system error
+    Os(OsError),
 }
 
 /// operating system error

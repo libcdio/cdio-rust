@@ -38,7 +38,7 @@ use winnow::{
 
 use crate::{
     Mmc,
-    mmc::{Cdb, MmcDirection, OsError},
+    mmc::{Cdb, MmcDirection, MmcError},
 };
 
 /// Routines based on MMC `GET EVENT STATUS NOTIFICATION`.
@@ -56,7 +56,7 @@ impl Mmc {
         &self,
         mode: EventMode,
         class: EventClass,
-    ) -> Result<EventData, OsError> {
+    ) -> Result<EventData, MmcError> {
         let mut data = EventData::default();
         let mut cdb = Cdb::default();
         cdb[0] = OPCODE;
@@ -256,8 +256,8 @@ bitflags! {
 #[non_exhaustive]
 #[derive(Debug, Display, Error)]
 pub enum MmcStatusError {
-    /// operating system returned an error
-    Os(#[from] OsError),
+    /// error performing MMC command
+    Cmd(#[from] MmcError),
 
     /// invalid response from mmc command: {0}
     InvalidResponse(String),

@@ -34,7 +34,7 @@ use winnow::{
 
 use crate::{
     Mmc,
-    mmc::{Cdb, MmcDirection, OsError},
+    mmc::{Cdb, MmcDirection, MmcError},
 };
 
 /// Routines based on MMC `READ SUB-CHANNEL`.
@@ -176,7 +176,7 @@ impl Mmc {
         &self,
         address_format: AddressFormat,
         param: SubchannelParameter,
-    ) -> Result<SubchannelData, OsError> {
+    ) -> Result<SubchannelData, MmcError> {
         let mut data = SubchannelData::default();
         let mut cdb = Cdb::default();
         cdb[0] = OPCODE;
@@ -220,7 +220,7 @@ pub enum MmcAudioStatusError {
     NotSupported,
 
     /// operating system returned an error: {0}
-    Os(#[from] OsError),
+    Cmd(#[from] MmcError),
 
     /// invalid response from command
     InvalidResponse(String),
@@ -228,7 +228,7 @@ pub enum MmcAudioStatusError {
 impl From<MmcSubchannelError> for MmcAudioStatusError {
     fn from(value: MmcSubchannelError) -> Self {
         match value {
-            MmcSubchannelError::Os(os_error) => Self::Os(os_error),
+            MmcSubchannelError::Cmd(error) => Self::Cmd(error),
             MmcSubchannelError::InvalidResponse(error) => Self::InvalidResponse(error),
         }
     }
@@ -280,7 +280,7 @@ fn parse_header(input: &mut &[u8]) -> Result<Option<MmcAudioStatus>, MmcSubchann
 #[derive(Debug, Display, Error)]
 pub enum MmcSubchannelError {
     /// operating system returned an error
-    Os(#[from] OsError),
+    Cmd(#[from] MmcError),
 
     /// invalid response from mmc command: {0}
     InvalidResponse(String),
