@@ -353,6 +353,14 @@ pub enum OsError {
     BadParameter = libcdio_sys::driver_return_code_t_DRIVER_OP_BAD_PARAMETER,
 }
 
+/// Implemented MMC commands and their operation codes.
+#[allow(unused)]
+#[repr(u8)]
+#[derive(Clone, Copy, Debug)]
+enum MmcCommand {
+    GetConfiguration = 0x46,
+}
+
 #[cfg(test)]
 mod tests {
     use tracing::info;
