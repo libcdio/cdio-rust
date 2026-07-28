@@ -25,10 +25,12 @@ use std::{
 
 pub use get_config::*;
 pub use get_event_status::*;
+pub use read_disc_info::*;
 pub use read_subchannel::*;
 
 mod get_config;
 mod get_event_status;
+mod read_disc_info;
 mod read_subchannel;
 
 use docsplay::Display;
@@ -359,6 +361,7 @@ pub enum OsError {
 #[derive(Clone, Copy, Debug)]
 enum MmcCommand {
     GetConfiguration = 0x46,
+    ReadDiscInfo = 0x51,
 }
 
 #[cfg(test)]
