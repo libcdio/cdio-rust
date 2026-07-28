@@ -26,12 +26,14 @@ use std::{
 pub use get_config::*;
 pub use get_event_status::*;
 pub use read_cd::*;
+pub use read_disc_info::*;
 pub use read_subchannel::*;
 pub use read_toc::*;
 
 mod get_config;
 mod get_event_status;
 mod read_cd;
+mod read_disc_info;
 mod read_subchannel;
 mod read_toc;
 
@@ -364,6 +366,7 @@ enum MmcCommand {
     #[allow(unused)]
     GetConfiguration = 0x46,
     ReadCd = 0xBE,
+    ReadDiscInfo = 0x51,
     ReadToc = 0x43,
 }
 
