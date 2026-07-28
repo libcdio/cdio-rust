@@ -26,10 +26,12 @@ use std::{
 pub use get_config::*;
 pub use get_event_status::*;
 pub use read_subchannel::*;
+pub use read_toc::*;
 
 mod get_config;
 mod get_event_status;
 mod read_subchannel;
+mod read_toc;
 
 use docsplay::Display;
 use libcdio_sys::{
@@ -354,12 +356,15 @@ pub enum OsError {
 }
 
 /// Implemented MMC commands and their operation codes.
-#[allow(unused)]
 #[repr(u8)]
 #[derive(Clone, Copy, Debug)]
 enum MmcCommand {
+    #[allow(unused)]
     GetConfiguration = 0x46,
+    ReadToc = 0x43,
 }
+
+const LEADOUT_TRACK: u8 = 0xAA; // Indicates the end of the disc.
 
 #[cfg(test)]
 mod tests {
