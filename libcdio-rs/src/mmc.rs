@@ -26,12 +26,16 @@ use std::{
 pub use get_config::*;
 pub use get_event_status::*;
 pub use prevent_allow_medium_removal::*;
+pub use read_disc_info::*;
 pub use read_subchannel::*;
+pub use read_toc::*;
 
 mod get_config;
 mod get_event_status;
 mod prevent_allow_medium_removal;
+mod read_disc_info;
 mod read_subchannel;
+mod read_toc;
 
 use docsplay::Display;
 use libcdio_sys::{
@@ -356,13 +360,17 @@ pub enum OsError {
 }
 
 /// Implemented MMC commands and their operation codes.
-#[allow(unused)]
 #[repr(u8)]
 #[derive(Clone, Copy, Debug)]
 enum MmcCommand {
+    #[allow(unused)]
     GetConfiguration = 0x46,
     PreventAllowMediumRemoval = 0x1E,
+    ReadDiscInfo = 0x51,
+    ReadToc = 0x43,
 }
+
+const LEADOUT_TRACK: u8 = 0xAA; // Indicates the end of the disc.
 
 #[cfg(test)]
 mod tests {
