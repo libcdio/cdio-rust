@@ -28,6 +28,7 @@ pub use get_event_status::*;
 pub use inquiry::*;
 pub use read_disc_info::*;
 pub use read_subchannel::*;
+pub use test_unit_ready::*;
 pub use read_toc::*;
 
 mod get_config;
@@ -35,6 +36,7 @@ mod get_event_status;
 mod inquiry;
 mod read_disc_info;
 mod read_subchannel;
+mod test_unit_ready;
 mod read_toc;
 
 use docsplay::Display;
@@ -366,6 +368,7 @@ enum MmcCommand {
     #[allow(unused)]
     GetConfiguration = 0x46,
     Inquiry = 0x12,
+    TestUnitReady = 0x00,
     ReadDiscInfo = 0x51,
     ReadToc = 0x43,
 }
