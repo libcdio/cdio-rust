@@ -27,11 +27,13 @@ pub use get_config::*;
 pub use get_event_status::*;
 pub use prevent_allow_medium_removal::*;
 pub use read_subchannel::*;
+pub use start_stop_unit::*;
 
 mod get_config;
 mod get_event_status;
 mod prevent_allow_medium_removal;
 mod read_subchannel;
+mod start_stop_unit;
 
 use docsplay::Display;
 use libcdio_sys::{
@@ -362,6 +364,7 @@ pub enum OsError {
 enum MmcCommand {
     GetConfiguration = 0x46,
     PreventAllowMediumRemoval = 0x1E,
+    StartStopUnit = 0x1B,
 }
 
 #[cfg(test)]
