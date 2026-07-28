@@ -26,11 +26,18 @@ mod cli;
 fn main() -> Result<()> {
     let cli = Cli::parse();
     libcdio_cli::setup_logs(cli.debug);
-    let _mmc = if let Some(device) = cli.device {
+    let mmc = if let Some(device) = cli.device {
         Mmc::with_device(device)?
     } else {
         Mmc::new()?
     };
+
+    if cli.actions.eject {
+        mmc.allow_media_removal()?;
+        mmc.eject()?;
+    } else if cli.actions.close_tray {
+        mmc.close_tray()?;
+    }
 
     Ok(())
 }
