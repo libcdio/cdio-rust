@@ -30,6 +30,7 @@ pub use prevent_allow_medium_removal::*;
 pub use read_disc_info::*;
 pub use read_subchannel::*;
 pub use set_cd_speed::*;
+pub use start_stop_unit::*;
 pub use test_unit_ready::*;
 pub use read_toc::*;
 
@@ -38,6 +39,7 @@ mod get_event_status;
 mod prevent_allow_medium_removal;
 mod read_disc_info;
 mod read_subchannel;
+mod start_stop_unit;
 mod set_cd_speed;
 mod test_unit_ready;
 mod read_toc;
@@ -377,6 +379,7 @@ enum MmcCommand {
     ReadDiscInfo = 0x51,
     ReadToc = 0x43,
     SetCdSpeed = 0xBB,
+    StartStopUnit = 0x1B,
     TestUnitReady = 0x00,
 }
 
