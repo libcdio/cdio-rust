@@ -2,6 +2,18 @@
 Safe Rust abstraction over libcdio C.
 To use the raw FFI bindings, check out [libcdio-sys](https://crates.io/crates/libcdio-sys).
 
+## SCSI MMC spec references
+This library is primarily based on SCSI's [MMC-6][1] and [SPC-3][2].
+
+However, in an attempt to achieve feature parity with libcdio C, a few
+commands and options of existing commands that are marked legacy in
+MMC-6 have also been implemented.
+See Annexure E on legacy specifications in MMC-6 to find the last
+supported MMC version for said command or option.
+
+[1]: https://www.13thmonkey.org/documentation/SCSI/mmc6r02g.pdf
+[2]: https://www.13thmonkey.org/documentation/SCSI/spc3r23.pdf
+
 ## License
 Copyright (C) 2026 Shiva Kiran Koninty <shiva@skran.xyz>
 
