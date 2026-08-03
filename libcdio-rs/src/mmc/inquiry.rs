@@ -16,6 +16,7 @@
 // along with libcdio-rs. If not, see <https://www.gnu.org/licenses/>.
 
 //! Routines based on MMC `INQUIRY`.
+//! This command is described in SPC-3.
 
 use displaydoc::Display;
 use thiserror::Error;
