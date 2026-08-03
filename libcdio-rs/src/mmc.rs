@@ -16,6 +16,7 @@
 // along with libcdio-rs. If not, see <https://www.gnu.org/licenses/>.
 
 //! SCSI MMC (MultiMedia Commands) routines.
+//! Refer to `README.md` for the reference manuals of SPC and MMC used.
 
 use std::{
     ffi::{CString, NulError, OsString},
@@ -77,7 +78,7 @@ impl Mmc {
     /// # Errors
     /// If an MMC capable device could not be found.
     pub fn new() -> Result<Mmc, MmcNotFoundError> {
-        Cdio::new(None, Cdio::DEVICE_DRIVER)
+        Cdio::with_device(None)
             .map(|cdio| Self { cdio })
             .filter(|mmc| mmc.level().is_ok())
             .ok_or(MmcNotFoundError)
@@ -95,7 +96,7 @@ impl Mmc {
                 source: WithDeviceErrorKind::DeviceHasNullChar(err),
             }
         })?;
-        let Some(cdio) = Cdio::new(Some(&device), Cdio::DEVICE_DRIVER) else {
+        let Some(cdio) = Cdio::with_device(Some(&device)) else {
             return Err(WithDeviceError {
                 device: os_string_from_bytes_safe(device.into_bytes()).into(),
                 source: WithDeviceErrorKind::CouldNotOpenDevice,
@@ -214,17 +215,20 @@ pub struct MmcNotFoundError;
 #[derive(Debug, Display, Error)]
 pub struct MmcOperationError;
 
-/// Error and status information returned by an MMC device
+/// Error and status information returned by an MMC device.
+///
+/// Source:
+/// SPC-3 > General Concepts > Sense data > Fixed format sense data.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct MmcSenseData {
-    /// Generic information describing an exception.
+    /// Sense Key (SK) represents generic information describing an exception.
     pub sense_key: SenseKey,
 
-    /// Additional Sense Code indicates further information related
+    /// Additional Sense Code (ASC) indicates further information related
     /// to the exception reported by `sense_key`.
     pub asc: u8,
 
-    /// Additional Sense Code Qualifier indicates detailed information related
+    /// Additional Sense Code Qualifier (ASCQ) indicates detailed information related
     /// to the `additional_sense_code`.
     pub ascq: u8,
 
