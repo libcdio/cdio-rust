@@ -109,4 +109,4 @@ enum PowerCondition {
     Sleep = 0x5,
 }
 
-// see tests/media_removal.rs
+// TODO: add manual tests

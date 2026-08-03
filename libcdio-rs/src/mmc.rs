@@ -16,6 +16,7 @@
 // along with libcdio-rs. If not, see <https://www.gnu.org/licenses/>.
 
 //! SCSI MMC (MultiMedia Commands) routines.
+//! Refer to `README.md` for the reference manuals of SPC and MMC used.
 
 use std::{
     ffi::{CString, NulError, OsString},
@@ -28,21 +29,20 @@ pub use get_event_status::*;
 pub use prevent_allow_medium_removal::*;
 pub use read_subchannel::*;
 pub use start_stop_unit::*;
-
-mod get_config;
-mod get_event_status;
-mod prevent_allow_medium_removal;
-mod read_subchannel;
-mod start_stop_unit;
 pub use read_disc_info::*;
 pub use read_subchannel::*;
+pub use set_cd_speed::*;
+pub use start_stop_unit::*;
 pub use test_unit_ready::*;
 pub use read_toc::*;
 
 mod get_config;
 mod get_event_status;
+mod prevent_allow_medium_removal;
 mod read_disc_info;
 mod read_subchannel;
+mod start_stop_unit;
+mod set_cd_speed;
 mod test_unit_ready;
 mod read_toc;
 
@@ -223,17 +223,20 @@ pub struct MmcNotFoundError;
 #[derive(Debug, Display, Error)]
 pub struct MmcOperationError;
 
-/// Error and status information returned by an MMC device
+/// Error and status information returned by an MMC device.
+///
+/// Source:
+/// SPC-3 > General Concepts > Sense data > Fixed format sense data.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct MmcSenseData {
-    /// Generic information describing an exception.
+    /// Sense Key (SK) represents generic information describing an exception.
     pub sense_key: SenseKey,
 
-    /// Additional Sense Code indicates further information related
+    /// Additional Sense Code (ASC) indicates further information related
     /// to the exception reported by `sense_key`.
     pub asc: u8,
 
-    /// Additional Sense Code Qualifier indicates detailed information related
+    /// Additional Sense Code Qualifier (ASCQ) indicates detailed information related
     /// to the `additional_sense_code`.
     pub ascq: u8,
 
@@ -375,10 +378,11 @@ enum MmcCommand {
     #[allow(unused)]
     GetConfiguration = 0x46,
     PreventAllowMediumRemoval = 0x1E,
-    StartStopUnit = 0x1B,
-    TestUnitReady = 0x00,
     ReadDiscInfo = 0x51,
     ReadToc = 0x43,
+    SetCdSpeed = 0xBB,
+    StartStopUnit = 0x1B,
+    TestUnitReady = 0x00,
 }
 
 const LEADOUT_TRACK: u8 = 0xAA; // Indicates the end of the disc.
