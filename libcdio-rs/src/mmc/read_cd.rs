@@ -180,6 +180,9 @@ pub enum C2Option {
 }
 
 /// Sub-Channel information to include.
+// This corresponds to the 'Sub-channel Selection Field Values'.
+// Variant `0b000`, i.e 'no sub-channel data' can be represented using `None`.
+// Variant `0b001`, i.e 'RawPw' has been marked as legacy since `MMC-6`.
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum SubchannelOption {
