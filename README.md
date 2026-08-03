@@ -42,6 +42,11 @@ To run ignored tests, which require some extra setup:
 cargo test -- --include-ignored
 ```
 
+To run tests which require manual intervention:
+```sh
+MANUAL_TESTS=1 cargo test -- [TEST_FILTER1 TEST_FILTER2...] --include-ignored
+```
+
 ### Run the executables
 For example, to run the `iso-info` program:
 ```sh

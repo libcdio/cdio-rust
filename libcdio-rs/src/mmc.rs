@@ -26,6 +26,7 @@ use std::{
 
 pub use get_config::*;
 pub use get_event_status::*;
+pub use inquiry::*;
 pub use prevent_allow_medium_removal::*;
 pub use read_cd::*;
 pub use read_disc_info::*;
@@ -37,6 +38,7 @@ pub use test_unit_ready::*;
 
 mod get_config;
 mod get_event_status;
+mod inquiry;
 mod prevent_allow_medium_removal;
 mod read_cd;
 mod read_disc_info;
@@ -378,6 +380,7 @@ enum MmcCommand {
     #[allow(unused)]
     GetConfiguration = 0x46,
     ReadCd = 0xBE,
+    Inquiry = 0x12,
     PreventAllowMediumRemoval = 0x1E,
     ReadDiscInfo = 0x51,
     ReadToc = 0x43,
