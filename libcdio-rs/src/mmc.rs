@@ -28,16 +28,16 @@ pub use get_event_status::*;
 pub use inquiry::*;
 pub use read_disc_info::*;
 pub use read_subchannel::*;
-pub use test_unit_ready::*;
 pub use read_toc::*;
+pub use test_unit_ready::*;
 
 mod get_config;
 mod get_event_status;
 mod inquiry;
 mod read_disc_info;
 mod read_subchannel;
-mod test_unit_ready;
 mod read_toc;
+mod test_unit_ready;
 
 use docsplay::Display;
 use libcdio_sys::{

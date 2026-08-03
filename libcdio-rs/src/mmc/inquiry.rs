@@ -29,7 +29,7 @@ use crate::{
 /// Routines based on MMC `INQUIRY`.
 impl Mmc {
     /// Get the hardware identifiers (Product, Vendor and Revision).
-    pub fn hardware_identifiers(&self) -> Result<HardwareIdentifiers, GetHardwareIdentifersError> {
+    pub fn hardware_identifiers(&self) -> Result<HardwareIdentifiers, GetHardwareIdentifiersError> {
         let buf = self.inquiry(InquiryKind::Standard)?;
         let response_data_format = buf[RESPONSE_DATA_FMT_POS] & 0b1111;
         if response_data_format != RESPONSE_DATA_FMT_MMC {
@@ -85,9 +85,9 @@ impl Mmc {
     }
 }
 
-/// could not get hardware identifers
+/// could not get hardware identifiers
 #[derive(Debug, Display, Error)]
-pub struct GetHardwareIdentifersError {
+pub struct GetHardwareIdentifiersError {
     #[from]
     pub source: MmcInquiryError,
 }
@@ -125,7 +125,7 @@ mod tests {
 
     #[test_log::test(test)]
     #[ignore = "requires a drive with mmc"]
-    fn hardware_identifers() {
+    fn hardware_identifiers() {
         let hardware_identifiers = Mmc::new().unwrap().hardware_identifiers().unwrap();
         info!(?hardware_identifiers);
     }
