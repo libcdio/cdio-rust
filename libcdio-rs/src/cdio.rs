@@ -32,22 +32,29 @@ pub(crate) struct Cdio {
 }
 
 impl Cdio {
-    /// Create a new Cdio object with the given parameters.
-    pub(crate) fn new(device: Option<&CStr>, driver: driver_id_t) -> Option<Self> {
+    /// Initialize a hardware Cdio resource with read-write access.
+    pub(crate) fn with_device(device: Option<&CStr>) -> Option<Self> {
         let source = device.map(|s| s.as_ptr()).unwrap_or(ptr::null());
-        NonNull::new(Self::open(source, driver)).map(|cdio| Self { cdio })
+        NonNull::new(Self::open(true, source, driver_id_t_DRIVER_DEVICE)).map(|cdio| Self { cdio })
     }
 
-    fn open(source: *const c_char, driver: driver_id_t) -> *mut CdIo_t {
+    fn open(allow_writes: bool, source: *const c_char, driver: driver_id_t) -> *mut CdIo_t {
         logging::init_logger();
+        let access_mode = if allow_writes {
+            RW_ACCESS_MODE.as_ptr()
+        } else {
+            ptr::null()
+        };
 
         // SAFETY: This invokes cdio_init(), which mutates a static variable.
         // CDIO_LAST_DRIVER_LOCK is held to prevent data races.
         let _lock = CDIO_LAST_DRIVER_LOCK.lock().unwrap();
-        unsafe { libcdio_sys::cdio_open(source, driver) }
-    }
+        return unsafe { libcdio_sys::cdio_open_am(source, driver, access_mode) };
 
-    pub(crate) const DEVICE_DRIVER: driver_id_t = driver_id_t_DRIVER_DEVICE;
+        /// Although prefixed "MMC", this does imply read-write for all
+        /// operations
+        static RW_ACCESS_MODE: &CStr = c"MMC_RDWR";
+    }
 }
 
 impl Deref for Cdio {

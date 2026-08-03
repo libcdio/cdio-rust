@@ -40,7 +40,8 @@ impl Drive {
     /// Get a list of connected drives.
     /// The values could be used with [`Self::with_drive()`].
     pub fn drives() -> Vec<PathBuf> {
-        let drive_list = unsafe { libcdio_sys::cdio_get_devices(Cdio::DEVICE_DRIVER) };
+        let drive_list =
+            unsafe { libcdio_sys::cdio_get_devices(libcdio_sys::driver_id_t_DRIVER_DEVICE) };
         if drive_list.is_null() {
             return vec![];
         }
@@ -72,7 +73,7 @@ impl Drive {
     /// # Errors
     /// If there are no drives connected, or the drive could not be opened.
     pub fn new() -> Result<Self, DriveNotFoundError> {
-        Cdio::new(None, Cdio::DEVICE_DRIVER)
+        Cdio::with_device(None)
             .ok_or(DriveNotFoundError)
             .map(|cdio| Self { cdio })
     }
@@ -91,7 +92,7 @@ impl Drive {
                 source: WithDriveErrorKind::DriveHasNullChar(err),
             }
         })?;
-        let cdio = Cdio::new(Some(&drive), Cdio::DEVICE_DRIVER).ok_or_else(|| WithDriveError {
+        let cdio = Cdio::with_device(Some(&drive)).ok_or_else(|| WithDriveError {
             drive: os_string_from_bytes_safe(drive.into_bytes()).into(),
             source: WithDriveErrorKind::CouldNotOpenAsDrive,
         })?;
