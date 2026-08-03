@@ -16,6 +16,7 @@
 // along with libcdio-rs. If not, see <https://www.gnu.org/licenses/>.
 
 //! SCSI MMC (MultiMedia Commands) routines.
+//! Refer to `README.md` for the reference manuals of SPC and MMC used.
 
 use std::{
     ffi::{CString, NulError, OsString},
