@@ -209,17 +209,20 @@ pub struct MmcNotFoundError;
 #[derive(Debug, Display, Error)]
 pub struct MmcOperationError;
 
-/// Error and status information returned by an MMC device
+/// Error and status information returned by an MMC device.
+///
+/// Source:
+/// SPC-3 > General Concepts > Sense data > Fixed format sense data.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct MmcSenseData {
-    /// Generic information describing an exception.
+    /// Sense Key (SK) represents generic information describing an exception.
     pub sense_key: SenseKey,
 
-    /// Additional Sense Code indicates further information related
+    /// Additional Sense Code (ASC) indicates further information related
     /// to the exception reported by `sense_key`.
     pub asc: u8,
 
-    /// Additional Sense Code Qualifier indicates detailed information related
+    /// Additional Sense Code Qualifier (ASCQ) indicates detailed information related
     /// to the `additional_sense_code`.
     pub ascq: u8,
 
