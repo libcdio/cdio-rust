@@ -29,6 +29,7 @@ pub use get_event_status::*;
 pub use prevent_allow_medium_removal::*;
 pub use read_disc_info::*;
 pub use read_subchannel::*;
+pub use set_cd_speed::*;
 pub use test_unit_ready::*;
 pub use read_toc::*;
 
@@ -37,6 +38,7 @@ mod get_event_status;
 mod prevent_allow_medium_removal;
 mod read_disc_info;
 mod read_subchannel;
+mod set_cd_speed;
 mod test_unit_ready;
 mod read_toc;
 
@@ -372,9 +374,10 @@ enum MmcCommand {
     #[allow(unused)]
     GetConfiguration = 0x46,
     PreventAllowMediumRemoval = 0x1E,
-    TestUnitReady = 0x00,
     ReadDiscInfo = 0x51,
     ReadToc = 0x43,
+    SetCdSpeed = 0xBB,
+    TestUnitReady = 0x00,
 }
 
 const LEADOUT_TRACK: u8 = 0xAA; // Indicates the end of the disc.
