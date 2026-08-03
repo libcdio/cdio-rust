@@ -29,20 +29,20 @@ pub use get_event_status::*;
 pub use prevent_allow_medium_removal::*;
 pub use read_disc_info::*;
 pub use read_subchannel::*;
+pub use read_toc::*;
 pub use set_cd_speed::*;
 pub use start_stop_unit::*;
 pub use test_unit_ready::*;
-pub use read_toc::*;
 
 mod get_config;
 mod get_event_status;
 mod prevent_allow_medium_removal;
 mod read_disc_info;
 mod read_subchannel;
-mod start_stop_unit;
-mod set_cd_speed;
-mod test_unit_ready;
 mod read_toc;
+mod set_cd_speed;
+mod start_stop_unit;
+mod test_unit_ready;
 
 use docsplay::Display;
 use libcdio_sys::{

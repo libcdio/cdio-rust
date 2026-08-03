@@ -70,4 +70,4 @@ enum PreventOption {
     SetPersistent = 0b11,
 }
 
-// TODO: add manual tests
+// see tests/media_removal.rs
